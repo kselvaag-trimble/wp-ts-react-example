@@ -3,6 +3,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = {
   entry: {
     index: './src/index.tsx',
+    tidauth: './src/tidauth.tsx'
   },
   module: {
     rules: [
@@ -17,6 +18,13 @@ module.exports = {
     extensions: ['.tsx', '.ts', '.js'],
   },
   plugins: [
-    new HtmlWebpackPlugin()
+    new HtmlWebpackPlugin({
+      filename: "index.html",
+      chunks: ['index']
+    }),
+    new HtmlWebpackPlugin({
+      filename: "tidauth.html",
+      chunks: ['tidauth']
+    })
   ]
 };
