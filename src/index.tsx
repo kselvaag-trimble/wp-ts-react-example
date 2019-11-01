@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { TokenProvider, User } from './TokenProvider';
+import { TidSettings } from './tidSettings';
 
 const App = (props: { user?: User }) => (
   <div>
@@ -17,7 +18,7 @@ const updateApiTokens = (u: User) => {
   console.log("received new tokens, updating API clients");
 }
 
-const tokenProvider = new TokenProvider()
+const tokenProvider = new TokenProvider(TidSettings);
 
 tokenProvider.signIn(updateApiTokens)
   .then(() => {

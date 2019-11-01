@@ -12,11 +12,6 @@ interface Claims {
   exp: number
 }
 
-const appRootUrl = window.location.origin;
-const callbackUrl = `${appRootUrl}/tidauth.html`;
-const clientId = "Ufrzdx_fxgrj0MRfJ3ksYtEUfZca";
-const authority = "https://identity.trimble.com";
-
 // tslint:disable:max-classes-per-file
 export class TokenProvider {
 
@@ -26,7 +21,7 @@ export class TokenProvider {
   private nextSessionCheck = Date.now();
   private onNewTokens?: (user: User) => void;
 
-  constructor() {
+  constructor(settings: oidc.UserManagerSettings) {
     this.userManager = new oidc.UserManager(settings)
 
     oidc.Log.logger = console;
@@ -134,9 +129,13 @@ export class TokenProvider {
 export class AuthenticationCallbackHandler {
   private userManager: oidc.UserManager;
   private inRenewIframe: boolean;
+  private appRootUrl: string;
+  private callbackUrl: string
 
-  constructor() {
+  constructor(settings: oidc.UserManagerSettings, rootUrl: string) {
     this.userManager = new oidc.UserManager(settings);
+    this.appRootUrl = rootUrl
+    this.callbackUrl = settings.redirect_uri || "no callback url";
 
     this.inRenewIframe = window.frameElement && window.frameElement.nodeName === "IFRAME";
 
@@ -153,7 +152,7 @@ export class AuthenticationCallbackHandler {
         if (this.inRenewIframe) {
           await this.signinSilentCallback(url);
         } else {
-          await this.signinRedirectCallback(url, appRootUrl);
+          await this.signinRedirectCallback(url, this.appRootUrl);
         }
       } catch (e) {
         throw new Error("SignIn callback failed: " + e);
@@ -176,7 +175,7 @@ export class AuthenticationCallbackHandler {
 
   private isCallback() {
     const url = window.location.href;
-    return url.indexOf(callbackUrl) !== -1;
+    return url.indexOf(this.callbackUrl) !== -1;
   }
 }
 
@@ -214,25 +213,4 @@ function convertOidcUser(user: oidc.User): User {
     idToken: user.id_token,
     accessToken: user.access_token
   };
-}
-
-const settings: oidc.UserManagerSettings = {
-  authority,
-  client_id: clientId,
-  redirect_uri: callbackUrl,
-  response_type: "id_token token",
-  scope: "openid",
-
-  filterProtocolClaims: true,
-
-  loadUserInfo: false,
-  automaticSilentRenew: false,
-  monitorSession: false,
-  includeIdTokenInSilentRenew: false,
-  silent_redirect_uri: callbackUrl,
-
-  userStore: new oidc.WebStorageStateStore({
-    prefix: "oidc",
-    store: window.localStorage,
-  })
 }
