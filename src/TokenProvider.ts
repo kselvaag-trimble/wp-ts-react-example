@@ -1,11 +1,5 @@
 import * as oidc from 'oidc-client';
-
-export interface User {
-  firstName?: string
-  lastName?: string
-  idToken?: string
-  accessToken?: string
-}
+import { User } from './types';
 
 interface Claims {
   iat: number,
@@ -55,21 +49,21 @@ export class TokenProvider {
 
             validUser = (refreshedUser && refreshedUser.profile);
             if (validUser) {
-              await this.setUser(refreshedUser);
+              await this.SignInUser(refreshedUser);
             }
           } catch (e) {
             console.error("Could not refresh user: " + e);
           }
         } else {
           validUser = true;
-          await this.setUser(previouslyAuthenticatedUser);
+          await this.SignInUser(previouslyAuthenticatedUser);
         }
       }
     }
     return validUser;
   }
 
-  private async setUser(user: oidc.User) {
+  private async SignInUser(user: oidc.User) {
     this.userInfo = convertOidcUser(user)
     const claims = decodeIdToken(user.id_token);
 
@@ -107,7 +101,7 @@ export class TokenProvider {
 
     this.nextSessionCheck = Date.now() + 20000;
     const oidcUser = await this.userManager.signinSilent();
-    await this.setUser(oidcUser);
+    await this.SignInUser(oidcUser);
   }
 
   private receivedNewTokens() {
